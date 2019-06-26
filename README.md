@@ -16,6 +16,7 @@ MUN Placard Image Generator
 #### Modifying `countries_erratum.csv`
 For each line, the countries must be written in the following format:
 ```Name,Code```
+
 |  | Format | Sample |
 | - | - | - |
 | Name | Country Name | `Taiwan` or `"Taiwan, Republic of China"`|
@@ -26,6 +27,7 @@ The erratum file is loaded after the countries file and can be used to modify co
 #### Modifying `data.csv`
 For each line, the data must be in the following format, where multiple country codes can be entered at once:
 ```Committee,Code[,Code]```
+
 | | Format | Sample |
 | - | - | - |
 | Committee | Committee Background Name | `unsc`, `ecofin`, `au`, `interpol` |
