@@ -3,7 +3,8 @@ HelveticaNowDisplayXBlk.otf
 countries.csv
 flags/*.png
 
-# Output files
+# Input/output files
+data.csv
 output/*.png
 
 # Byte-compiled / optimized / DLL files
