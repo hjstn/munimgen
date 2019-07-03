@@ -1,3 +1,11 @@
+# External files
+HelveticaNowDisplayXBlk.otf
+countries.csv
+flags/*.png
+
+# Output files
+output/*.png
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

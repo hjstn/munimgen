@@ -20,7 +20,8 @@ For each line, the countries must be written in the following format:
 |  | Format | Sample |
 | - | - | - |
 | Name | Country Name | `Taiwan` or `"Taiwan, Republic of China"`|
-| Code | Country Code (ISO-3166 Alpha 2)| `TW` or `tw` |
+| Code | Country Code (ISO-3166 Alpha 2) | `TW` or `tw` |
+| Flag (optional) | Country Code for flag | `TW` or `tw` |
 
 The erratum file is loaded after the countries file and can be used to modify country names and add new countries.
 
@@ -31,7 +32,7 @@ For each line, the data must be in the following format, where multiple country 
 | | Format | Sample |
 | - | - | - |
 | Committee | Committee Background Name | `unsc`, `ecofin`, `au`, `interpol` |
-| Code | Country Code (ISO-3166 Alpha 2)| `TW` or `tw` |
+| Code | Country Code (ISO-3166 Alpha 2) | `TW` or `tw` |
 
 ### Copyright
 All assets used in the software belong to their respective owners, and are used under non-commercial fair use. The software is not licensed for use without prior permission.

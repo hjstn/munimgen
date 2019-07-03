@@ -2,17 +2,42 @@ import csv
 from os import path
 from PIL import Image, ImageOps, ImageDraw, ImageFont
 
-fontPath = path.abspath("HelveticaNowDisplayXBlk.otf")
+# Colors
 
-countriesErratumReader = csv.DictReader(open("countries_erratum.csv", "r"))
+textColor = (0, 0, 0)
+flagBorderColor = (0, 0, 0)
+placardBorderColor = (0, 0, 255)
+backgroundColor = (255, 255, 255)
+
+# Pixel Constants
+
+committeePadding = 512
+
+flagPadding = 130
+flagSize = 768
+
+textHeight = 200
+textPadding = 40
+
+defaultFontSize = 40
+
+# Globals
 
 countries = {}
+flags = {}
+
+# Files
+
+fontPath = path.abspath("HelveticaNowDisplayXBlk.otf")
+
+# External Data
 
 with open("countries.csv", "r") as countriesCSV:
     countriesReader = csv.reader(countriesCSV)
 
     next(countriesReader, None)
     for countryLine in countriesReader:
+        countryLine[1] = countryLine[1].upper()
         countries[countryLine[1]] = countryLine[0]
 
 with open("countries_erratum.csv", "r") as countriesCSV:
@@ -20,7 +45,12 @@ with open("countries_erratum.csv", "r") as countriesCSV:
 
     next(countriesReader, None)
     for countryLine in countriesReader:
+        countryLine[1] = countryLine[1].upper()
         countries[countryLine[1]] = countryLine[0]
+        if len(countryLine) >= 3:
+            flags[countryLine[1]] = countryLine[2]
+
+# Functions
 
 def generateFlag(iso, wh):
     countryFlag = Image.open("flags/{0}.png".format(iso.lower()))
@@ -33,17 +63,14 @@ def generateFlag(iso, wh):
 
     pad = (pad_w, pad_h, pad_w, pad_h)
 
-    return ImageOps.expand(ImageOps.expand(countryFlag, (1, 1), (0, 0, 0)), pad)
+    return ImageOps.expand(ImageOps.expand(countryFlag, (1, 1), flagBorderColor), pad)
 
 def getFont(size):
     return ImageFont.truetype(fontPath, size)
 
 def scaleText(text, w, h):
-    fontSize = 1
-
-    font = getFont(1)
-
-    textSize = font.getsize(text)
+    fontSize = defaultFontSize
+    textSize = (0, 0)
 
     while textSize[0] < w and textSize[1] < h:
         font = getFont(fontSize)
@@ -56,56 +83,73 @@ def scaleText(text, w, h):
 
     return font
 
-def drawText(placardDraw, text, w, h, x, y):
+def drawText(placardDraw, text, w, h, x, committeeHeight):
     font = scaleText(text, w, h)
 
     textSize = font.getsize(text)
 
     offset = font.getoffset(text)
 
-    pad_w = (w - textSize[0] - offset[0]) // 2
-    pad_h = (h - textSize[1] - offset[1]) // 2
+    xy = (x + ((w - textSize[0] - offset[0]) // 2), (committeeHeight - textSize[1] - offset[1]) // 2)
 
-    xy = (x + pad_w, y + pad_h)
+    placardDraw.text(xy, text, textColor, font)
 
-    placardDraw.text(xy, text, (0, 0, 0), font)
+def generatePlacard(committeeImg, flagText, flagImg):
+    # Initialization
+    placardWidth = committeeImg.size[0] + (committeePadding * 2)
 
-def generatePlacard(committee, iso):
-    committeeImg = Image.open("committees/{0}.png".format(committee))
-    committeeImg.load()
+    placard = Image.new("RGBA", (placardWidth, committeeImg.size[1]), backgroundColor)
 
-    placard = Image.new("RGBA", committeeImg.size)
+    placard.paste(committeeImg, (committeePadding, 0))
 
-    placard.paste(committeeImg, (0, 0))
+    # Draw Flag
+    placard.paste(flagImg, (flagPadding, (committeeImg.size[1] - flagSize) // 2), mask=flagImg)
 
-    flagImg = generateFlag(iso, 512)
-
-    placard.paste(flagImg, (130, 320), mask=flagImg)
-
+    # Draw Text
     placardDraw = ImageDraw.Draw(placard)
-
-    drawText(placardDraw, countries[iso.upper()], 1236, 200, 682, 478)
+    drawText(placardDraw, flagText, (placardWidth - (2 * flagPadding) - flagSize - textPadding), textHeight, flagPadding + flagSize + textPadding, committeeImg.size[1])
 
     return placard
 
-def generateDoublePlacard(committee, iso):
-    placard = generatePlacard(committee, iso)
+def generateDoublePlacard(sideA, sideB):
+    placardWidth = sideA.size[0] + (2 * committeePadding)
 
-    privilegeImg = Image.open("privilege.png")
-    privilegeImg.load()
+    dPlacard = Image.new("RGBA", (placardWidth, (sideA.size[1] * 2) + 3), backgroundColor)
 
-    dPlacard = Image.new("RGBA", (placard.size[0], (placard.size[1] * 2) + 3), (0, 0, 255))
+    dPlacard.paste(sideA.rotate(180), (committeePadding, 0))
 
-    dPlacard.paste(privilegeImg.rotate(180), (0, 0))
+    dPlacard.paste(sideB, ((placardWidth - sideB.size[0]) // 2, sideA.size[1] + 3))
 
-    dPlacard.paste(placard, (0, placard.size[1] + 3))
+    dDraw = ImageDraw.Draw(dPlacard)
 
-    dPlacard.save("output/{0}_{1}.png".format(committee, iso))
+    dDraw.rectangle([(0, sideA.size[1]), (placardWidth, sideA.size[1] + 3)], placardBorderColor)
 
-dataReader = csv.reader(open("data.csv", "r"))
+    return dPlacard
 
-committees = list(dataReader)
+# Input
 
-for committee in committees:
-    for country in committee[1:]:
-        generateDoublePlacard(committee[0], country)
+dataList = list(csv.reader(open("data.csv", "r")))
+
+# Preloaded Files
+
+privilegeImg = Image.open("privilege.png")
+privilegeImg.load()
+
+# Code
+
+for dataRow in dataList:
+    committee = dataRow[0]
+
+    committeeImg = Image.open("committees/{0}.png".format(committee))
+    committeeImg.load()
+
+    for iso in dataRow[1:]:
+        iso = iso.upper()
+
+        flagText = countries[iso]
+        flagImg = generateFlag(flags[iso] if iso in flags else iso, flagSize)
+
+        countryPlacard = generatePlacard(committeeImg, flagText, flagImg)
+
+        finalPlacard = generateDoublePlacard(privilegeImg, countryPlacard)
+        finalPlacard.save("output/{0}_{1}.png".format(committee, iso))
