@@ -16,7 +16,8 @@ committeePadding = 512
 flagPadding = 130
 flagSize = 768
 
-textHeight = 200
+#textHeight = 200
+textHeight = 400
 textPadding = 40
 
 defaultFontSize = 40
@@ -32,7 +33,7 @@ fontPath = path.abspath("HelveticaNowDisplayXBlk.otf")
 
 # External Data
 
-with open("countries.csv", "r") as countriesCSV:
+with open("countries.csv", "r", encoding="utf-8") as countriesCSV:
     countriesReader = csv.reader(countriesCSV)
 
     next(countriesReader, None)
@@ -40,7 +41,7 @@ with open("countries.csv", "r") as countriesCSV:
         countryLine[1] = countryLine[1].upper()
         countries[countryLine[1]] = countryLine[0]
 
-with open("countries_erratum.csv", "r") as countriesCSV:
+with open("countries_erratum.csv", "r", encoding="utf-8") as countriesCSV:
     countriesReader = csv.reader(countriesCSV)
 
     next(countriesReader, None)
@@ -53,7 +54,7 @@ with open("countries_erratum.csv", "r") as countriesCSV:
 # Functions
 
 def generateFlag(iso, wh):
-    countryFlag = Image.open("flags/{0}.png".format(iso.lower()))
+    countryFlag = Image.open("flags/{0}.png".format(iso.lower())).convert("RGBA")
     countryFlag.load()
 
     countryFlag.thumbnail((wh - 2, wh - 2))
@@ -90,7 +91,7 @@ def drawText(placardDraw, text, w, h, x, committeeHeight):
 
     offset = font.getoffset(text)
 
-    xy = (x + ((w - textSize[0] - offset[0]) // 2), (committeeHeight - textSize[1] - offset[1]) // 2)
+    xy = (x + ((w - textSize[0]) // 2), (committeeHeight - textSize[1] - offset[1]) // 2)
 
     placardDraw.text(xy, text, textColor, font)
 
