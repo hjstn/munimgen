@@ -54,7 +54,17 @@ with open("countries_erratum.csv", "r", encoding="utf-8") as countriesCSV:
 # Functions
 
 def generateFlag(iso, wh):
-    countryFlag = Image.open("flags/{0}.png".format(iso.lower())).convert("RGBA")
+    if iso == "NOFLAG":
+        return None
+
+    flagPath = "{0}.png".format(iso.lower())
+
+    if path.exists("flags_erratum/{0}".format(flagPath)):
+        flagPath = "flags_erratum/" + flagPath
+    else:
+        flagPath = "flags/" + flagPath
+    
+    countryFlag = Image.open(flagPath).convert("RGBA")
     countryFlag.load()
 
     countryFlag.thumbnail((wh - 2, wh - 2))
@@ -104,11 +114,12 @@ def generatePlacard(committeeImg, flagText, flagImg):
     placard.paste(committeeImg, (committeePadding, 0))
 
     # Draw Flag
-    placard.paste(flagImg, (flagPadding, (committeeImg.size[1] - flagSize) // 2), mask=flagImg)
+    if flagImg != None:
+        placard.paste(flagImg, (flagPadding, (committeeImg.size[1] - flagSize) // 2), mask=flagImg)
 
     # Draw Text
     placardDraw = ImageDraw.Draw(placard)
-    drawText(placardDraw, flagText, (placardWidth - (2 * flagPadding) - flagSize - textPadding), textHeight, flagPadding + flagSize + textPadding, committeeImg.size[1])
+    drawText(placardDraw, flagText, placardWidth - (((2 * flagPadding) + flagSize + textPadding) if flagImg != None else (2 * textPadding)), textHeight, (flagPadding + flagSize + textPadding) if flagImg != None else textPadding, committeeImg.size[1])
 
     return placard
 

@@ -7,6 +7,8 @@ flags/*.png
 data.csv
 output/*.png
 
+flags_erratum/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
